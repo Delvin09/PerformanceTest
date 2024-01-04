@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace TestTest1
 {
+
     public class Program
     {
         static void Main(string[] args)
@@ -16,7 +17,7 @@ namespace TestTest1
 
                                 //      7    6     5      4     3     2    1    0
             var arr = new char[] { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'j' };
-                                //  0    1    2    3    4    5    6    7    8
+            //  0    1    2    3    4    5    6    7    8
 
 
             //var sw = Stopwatch.StartNew();
@@ -26,6 +27,24 @@ namespace TestTest1
             //Console.WriteLine(sw.Elapsed);
 
             //for (int i = 0; i < 1_000_000; i++) Filter_WithoutBinarySearch(text, exceptWords);
+
+            var r = TextReverse("1234567");
+        }
+
+        static string TextReverse(string text)
+        {
+            int textLenght = text.Length;
+
+            char[] textArray = new char[textLenght];
+
+            for (int i = 0; i < textLenght; i++)
+            {
+                textArray[i] = text[textLenght - 1 - i];
+            }
+
+            string reversedText = new string(textArray);
+
+            return reversedText;
         }
 
         public static string Filter_WithoutBinarySearch(string text, string[] exceptedWords)
@@ -81,7 +100,7 @@ namespace TestTest1
         public static string Filter_WithBinarySearch(string text, string[] exceptedWords)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            //var span = text.AsSpan();
+            //var span = text.AsSpan(10, 5);
 
             int startWordIndex = -1;
             for (int textIndex = 0; textIndex < text.Length; textIndex++)
@@ -99,6 +118,48 @@ namespace TestTest1
                         //var word = span[startWordIndex..textIndex];
                         //if (InternalBinarySearch(exceptedWords, 0, exceptedWords.Length, word) >= 0)
                         if (Array.BinarySearch(exceptedWords, word, StringComparer.OrdinalIgnoreCase) >= 0)
+                            stringBuilder.Append('*', word.Length);
+                        else
+                            stringBuilder.Append(word);
+                    }
+                    stringBuilder.Append(ch);
+                    startWordIndex = -1;
+                }
+            }
+
+            if (startWordIndex >= 0 && text.Length - 1 > startWordIndex)
+            {
+                var word = text[startWordIndex..];
+                if (exceptedWords.Contains(word, StringComparer.OrdinalIgnoreCase))
+                    stringBuilder.Append('*', word.Length);
+                else
+                    stringBuilder.Append(word);
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        public static string Filter_WithBinarySearch_And_Span(string text, string[] exceptedWords)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            var span = text.AsSpan();
+
+            int startWordIndex = -1;
+            for (int textIndex = 0; textIndex < text.Length; textIndex++)
+            {
+                var ch = text[textIndex];
+                if (char.IsLetter(ch) || ch == '\'')
+                {
+                    if (startWordIndex < 0) startWordIndex = textIndex;
+                }
+                else
+                {
+                    if (startWordIndex >= 0 && textIndex > startWordIndex)
+                    {
+                       // var word = text[startWordIndex..textIndex];
+                        var word = span[startWordIndex..textIndex];
+                        if (InternalBinarySearch(exceptedWords, 0, exceptedWords.Length, word) >= 0)
+                        //if (Array.BinarySearch(exceptedWords, word, StringComparer.OrdinalIgnoreCase) >= 0)
                             stringBuilder.Append('*', word.Length);
                         else
                             stringBuilder.Append(word);
@@ -196,8 +257,8 @@ namespace TestTest1
             //название с большой
             bool notChar(char symbol)
             {
-                // Char.ToUpper(symbol) можно выполнить один раз
-                return !(Char.ToUpper(symbol) >= 'A' && Char.ToUpper(symbol) <= 'Z');
+                symbol = Char.ToUpper(symbol);
+                return !(symbol >= 'A' && symbol <= 'Z');
             }
             if (subStr.Length > sourceString.Length)
             {
@@ -334,6 +395,93 @@ namespace TestTest1
                 }
             }
             return string.Join(' ', words);
+        }
+
+        public static string Filter_Vyacheslav(string textExample, /*string[] exceptWords*/ HashSet<string> exceptWordsHash)
+        {
+            //HashSet<string> exceptWordsHash = new HashSet<string>(exceptWords, StringComparer.OrdinalIgnoreCase);
+
+            string[] splitResult = Regex.Split(textExample, @"(\s|,|\.|!|\?)");
+
+            for (int i = 0; i < splitResult.Length; i++)
+            {
+                if (exceptWordsHash.Contains(splitResult[i]))
+                {
+                    splitResult[i] = "***";
+                }
+            }
+
+            return string.Join("", splitResult);
+        }
+
+        public static string Filter_Volodimir_v2(string sourceString, string[] exceptWords)
+        {
+            char[] charArray = sourceString.ToCharArray();
+            char symbol = '*';
+            bool NotChar(char symbol)
+            {
+                return !(Char.ToUpper(symbol) >= 'A' && Char.ToUpper(symbol) <= 'Z');
+            }
+            for (int i = 0; i < charArray.Length; i++)
+            {
+                // start of word in string
+                bool isStartOfWord = ((i != 0 && NotChar(charArray[i - 1])) || i == 0);
+                if (isStartOfWord)
+                {
+                    bool matched = false;
+                    for (int j = 0; j < exceptWords.Length; j++)
+                    {
+                        //if matched skip all other except words
+                        if (matched) break;
+
+                        for (int k = 0; k < exceptWords[j].Length; k++)
+                        {
+                            //skip if except word more then word in string or char are not equal
+                            if ((i + k) >= (charArray.Length) || charArray[i + k] != exceptWords[j][k]) break;
+
+                            //end of word in string
+                            bool isEndOfWord = (((i + k) != (charArray.Length - 1) && NotChar(charArray[i + k + 1])) || (i + k) == (charArray.Length - 1));
+                            // end of except word
+                            bool isEndOfExpectWord = ((k != (exceptWords[j].Length - 1) && NotChar(exceptWords[j][k + 1])) || k == (exceptWords[j].Length - 1));
+
+
+                            if (isEndOfWord && isEndOfExpectWord)
+                            {
+                                matched = true;
+                                for (int w = i; w < (exceptWords[j].Length + i); w++)
+                                {
+                                    charArray[w] = symbol;
+                                }
+
+                                //go to other word in string
+                                i = exceptWords[j].Length + i;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            return new string(charArray);
+        }
+
+        static string Filter_Eugen(string inputText, string[] forbiddenWords)
+        {
+            foreach (var word in forbiddenWords)
+            {
+                int index = inputText.IndexOf(word, StringComparison.OrdinalIgnoreCase);
+                while (index != -1)
+                {
+                    int nextCharIndex = index + word.Length;
+                    if ((nextCharIndex == inputText.Length || !char.IsLetterOrDigit(inputText[nextCharIndex])) &&
+                        (index == 0 || !char.IsLetterOrDigit(inputText[index - 1])))
+                    {
+                        inputText = inputText.Remove(index, word.Length);
+                        inputText = inputText.Insert(index, "***");
+                    }
+                    index = inputText.IndexOf(word, index + word.Length, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            return inputText.ToString();
         }
     }
 }

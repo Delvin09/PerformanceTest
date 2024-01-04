@@ -4,6 +4,45 @@ using System.Threading;
 
 namespace LabSearch
 {
+    class PathNode
+    {
+        private readonly char[,] _maze;
+
+        public Point Position { get; }
+
+        public PathNode? Parent { get; }
+
+        public PathNode(char[,] maze, Point position, PathNode parent)
+        {
+            _maze = maze;
+            Position = position;
+            Parent = parent;
+        }
+
+        public List<PathNode> GetNextNodes()
+        {
+            var result = new List<PathNode>(4);
+            if (Position.X + 1 < _maze.GetLength(0))
+            {
+                result.Add(new PathNode(_maze, new Point(Position.X + 1, Position.Y), this));
+            }
+            if (Position.Y + 1 < _maze.GetLength(1))
+            {
+                result.Add(new PathNode(_maze, new Point(Position.X, Position.Y + 1), this));
+            }
+            if (Position.X - 1 >= 0)
+            {
+                result.Add(new PathNode(_maze, new Point(Position.X - 1, Position.Y), this));
+            }
+            if (Position.Y - 1 >= 0)
+            {
+                result.Add(new PathNode(_maze, new Point(Position.X, Position.Y - 1), this));
+            }
+
+            return result;
+        }
+    }
+
     enum PathWay
     {
         Right,
@@ -112,6 +151,43 @@ namespace LabSearch
 
             var result = FindPath_Dfs(field, barier, free, start, end);
             Display(field, result);
+        }
+
+        private static Point[] FindPath_Bfs(char[,] field, char barier, char free, Point start, Point end)
+        {
+            static Point[] NodeToPath(PathNode exitNode)
+            {
+                List<Point> result = new List<Point>();
+                while (exitNode != null)
+                {
+                    result.Add(exitNode.Position);
+                    exitNode = exitNode.Parent!;
+                }
+                result.Reverse();
+                return result.ToArray();
+            }
+
+            var forCheck = new Queue<PathNode>();
+            forCheck.Enqueue(new PathNode(field, start, null!));
+
+            List<PathNode> explored = new List<PathNode>();
+
+            while (forCheck.Count > 0)
+            {
+                var currentNode = forCheck.Dequeue();
+                if (currentNode.Position == end) return NodeToPath(currentNode);
+
+                explored.Add(currentNode);
+                foreach (var possibleNode in currentNode.GetNextNodes())
+                {
+                    if (field[possibleNode.Position.X, possibleNode.Position.Y] == barier) continue;
+                    if (explored.Contains(possibleNode)) continue;
+
+                    forCheck.Enqueue(possibleNode);
+                }
+            }
+
+            return Array.Empty<Point>();
         }
 
         private static Point[] FindPath_Dfs(char[,] field, char barier, char free, Point start, Point end)

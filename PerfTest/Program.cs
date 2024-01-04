@@ -10,16 +10,22 @@ namespace PerfTest
 
         string[] exceptWords = { "ass", "assfuck", "damn", "goddamnit", "asshole", "bastard", "twat", "douchebag", "fuckface", "shitface", "dickhead", "fuckbrain", "shithead", "fudgepacker", "handjob", "dumbass", "fuckhead", "douche", "fuckass", "poonany", "arse", "punta", "shitstain", "shitfaced", "assbanger", "assgoblin", "anus", "fuckwad", "assbag", "snatch", "assmunch", "fellatio", "asslicker", "vjayjay", "bitchass", "asswipe", "dumb ass", "jackass", "goddamn", "peckerhead", "butt", "dumass", "assface", "assclown", "fatass", "wank", "vag", "twats", "assfucker", "carpetmuncher", "arsehole", "dickbag", "cockmaster", "asshat", "shitbagger", "asshopper", "twatwaffle", "poonani", "cockface", "fagbag", "mothafucka", "choad", "twatlips", "asshead", "nutsack", "assjacker", "asscock", "assbandit", "douchewaffle", "assbite", "assshole", "cumtart", "cockhead", "asslick", "assshit", "doochbag", "assmonkey", "shitbrains", "asswad", "shitbag", "cuntrag", "shitass", "flamer", "asssucker", "punanny", "pissflaps", "cuntface", "dickwad", "poontang", "dickweasel", "clitface", "assmuncher", "asscracker", "fuckbag", "shitbreath", "dickslap", "cockass", "dickbeaters", "asses", "dickface", "asspirate", "wankjob", "suckass", "shitcanned", "cockwaffle", "cuntass", "lameass", "mothafuckin'", "penisbanger", "kraut", "jerkass", "lardass", "axwound", "fuckhole", "boner", "pecker", "motherfucker", "fucker", "motherfucking", "honkey", "cockknoker", "dickweed", "penisfucker", "minge", "testicle", "buttfucker", "feltch", "bumblefuck", "shithouse", "scrote", "pissed", "pissed off", "fucked", "thundercunt", "cockmuncher", "dookie", "queef", "chode", "cocksucker", "dickhole", "cooter", "shitter", "shittiest", "cumbubble", "splooge", "cunthole", "coochie", "dickmonger", "penis", "cockmongruel", "cockfucker", "brotherfucker", "cockbite", "cocksmoker", "bitches", "cunnie", "cuntlicker", "dickfucker", "smeg", "cumguzzler", "penispuffer", "shithole", "clusterfuck", "cockmongler", "cockmonkey", "cocknose", "cockjockey", "cumdumpster", "polesmoker", "dickjuice", "dicksucker", "cockburger", "dike", "cumjockey", "unclefucker", "shitspitter", "cocknugget", "fuckersucker", "hoe", "muffdiver", "cocksniffer", "dick", "fuckbutter", "cocksmoke", "dicktickler", "chesticle", "shit", "fuckwit", "bitch", "clit", "dildo", "rimjob", "piss", "shitty", "prick", "humping", "bitchtits", "gringo", "dumbshit", "shitting", "dickfuck", "clitfuck", "jizz", "bullshit", "dumshit", "titfuck", "cunnilingus", "fuckstick", "tits", "dickwod", "fuckin", "dicks", "dipshit", "bitchy", "tit", "munging", "shitcunt", "shitdick", "cocksmith", "cockshit", "dickmilk", "fuckwitt", "tittyfuck", "dicksucking", "cock", "blowjob", "coochy", "kooch", "pollock", "kootch", "blow job", "poon", "schlong", "bollox", "bollocks", "fuckoff", "fuckboy", "spook", "fuck", "cunt", "cum", "pussy", "skullfuck", "fuckup", "dumbfuck", "fucknut", "fucks", "muff", "fuckbutt", "cumslut", "cuntslut", "fucknutt", "kunt" };
 
+        HashSet<string> exceptWordsHash = null!;
+
         public PerfTest()
         {
             Array.Sort(exceptWords);
+            exceptWordsHash = new HashSet<string>(exceptWords, StringComparer.OrdinalIgnoreCase);
         }
 
-        [Benchmark(Baseline = true)]
+        [Benchmark]
         public string Filter_WithBinarySearch() => TestTest1.Program.Filter_WithBinarySearch(text, exceptWords);
 
-        [Benchmark]
-        public string Filter_WithoutBinarySearch() => TestTest1.Program.Filter_WithoutBinarySearch(text, exceptWords);
+        [Benchmark(Baseline = true)]
+        public string Filter_WithBinarySearch_And_Span() => TestTest1.Program.Filter_WithBinarySearch_And_Span(text, exceptWords);
+
+        //[Benchmark]
+        //public string Filter_WithoutBinarySearch() => TestTest1.Program.Filter_WithoutBinarySearch(text, exceptWords);
 
         //[Benchmark]
         //public string Filter_Regex_Oleg() => TestTest1.Program.Filter_Regex_Oleg(text, exceptWords);
@@ -31,6 +37,9 @@ namespace PerfTest
         //public string Filter_Volodimir() => TestTest1.Program.Filter_Volodimir(text, exceptWords);
 
         //[Benchmark]
+        //public string Filter_Volodimir_v2() => TestTest1.Program.Filter_Volodimir_v2(text, exceptWords);
+
+        //[Benchmark]
         //public string Filter_CorrectText_Olena() => TestTest1.Program.Filter_CorrectText_Olena(text, exceptWords);
 
         //[Benchmark]
@@ -38,6 +47,9 @@ namespace PerfTest
 
         //[Benchmark]
         //public string Filter_Anna() => TestTest1.Program.Filter_Anna(text, exceptWords);
+
+        //[Benchmark]
+        //public string Filter_Vyacheslav() => TestTest1.Program.Filter_Vyacheslav(text, exceptWordsHash);
     }
 
     public class Program
